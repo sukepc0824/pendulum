@@ -138,7 +138,7 @@
 
         const fps = 60;
         let lastRenderTime = 0;
-
+        let externalImpact = 0;
         let omega = 0;
         let alpha = 0;
 
@@ -157,6 +157,8 @@
             alpha -= airResistance * omega / mass
             omega += alpha * dt
             theta += omega * dt
+            alpha += externalImpact;
+            externalImpact *= 0.9;
         }
 
         function hogehoge(){
@@ -219,8 +221,8 @@
         })
 
         function handleMotion(event) {
-            let ax = event.accelerationIncludingGravity.x; // スマホの左右加速度
-            omega += ax * dt; // 加速度を角速度に反映
+            let ax = event.acceleration.x
+            externalImpact = ax * 0.1;
         }
         
         if (window.DeviceMotionEvent) {
