@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/destyle.css@1.0.15/destyle.css" />
+    <script src="count-anim.js"></script>
+    <title>振り子シミュレーション</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fragment+Mono:ital@0;1&display=swap');
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background: black;
+            font-family: "Fragment mono", sans-serif;
+            font-feature-settings: "tnum";
+        }
+
+        .time {
+            position: absolute;
+            color: #fff;
+            font-size: 30px;
+            left: 0;
+            z-index: 100;
+            width: fit-content;
+            padding: 6px;
+            height: fit-content;
+            display: flex;
+            align-items: end;
+            justify-content: center;
+            transform: translateX(-50%) translateY(-50%);
+            background-color: black;
+            border-radius: 50%;
+            transition: opacity 0.1s, transform 0.1s;
+            opacity: 1;
+        }
+
+        body.run .time {
+            transform: translateX(-50%) translateY(-50%) scale(0);
+            opacity: 0;
+        }
+
+        .time span {
+            margin-left: 3px;
+            font-size: 23px;
+        }
+
+        .display {
+            height: 140px;
+            color: white;
+            opacity: 0;
+            transition: opacity 1s;
+            align-items: center;
+            font-size: 30px;
+            display: flex;
+            user-select: none;
+        }
+
+        body.run .display {
+            opacity: 1;
+        }
+
+        .pendulum-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .rod {
+            position: absolute;
+            left: 50%;
+            width: 1px;
+            height: 100px;
+            transform: translateX(-50%);
+            background: white;
+            transform-origin: top;
+            transition: width .4s;
+        }
+
+        body.run .rod {
+            width: 2px;
+        }
+
+        .bob {
+            position: absolute;
+            width: 46px;
+            height: 46px;
+            background: black;
+            border-radius: 50%;
+            outline: 4px solid white;
+            z-index: 10000;
+            transition: outline .2s;
+            left: calc(50% - 46px / 2);
+            top: calc(100px - 46px / 2);
+        }
+
+        body.run .bob {
+            outline: 9px solid white;
+            transform: scale(1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="display">12:
+        <div class="min"></div>
+    </div>
+    <div class="pendulum-container">
+        <div class="time">
+            <div class="time-inline"></div>
+            <span>m</span>
+        </div>
+        <div class="rod" id="rod"></div>
+        <div class="bob" id="bob"></div>
+    </div>
+    <script>
+        const g = 10; // 重力加速度 (m/s^2)
+        let length = 200; // 振り子の長さ (m)
+        const mass = 1; // 振り子の質量 (kg)
+        const dt = 0.016; // 時間刻み (s)
+        const airResistance = 0;
+        let theta = Math.PI / 4;
+
+        const fps = 60;
+        let lastRenderTime = 0;
+
+        let omega = 0;
+        let alpha = 0;
+
+        const baseY = $(".pendulum-container").offset().top
+        const baseX = $(".pendulum-container").offset().left + $(".pendulum-container").width() / 2
+
+        const rod = document.getElementById("rod")
+        const bob = document.getElementById("bob")
+        const time = document.querySelector(".time")
+
+        let time_count = new CountAnim(document.querySelector(".time-inline"))
+        let timer = new CountAnim(document.querySelector(".display .min"))
+
+        function update() {
+            alpha = - (g / (length / 100)) * Math.sin(theta)
+            alpha -= airResistance * omega / mass
+            omega += alpha * dt
+            theta += omega * dt
+        }
+
+        function draw() {
+            const angleDeg = theta * (180 / Math.PI)
+            rod.style.transform = `rotate(${angleDeg}deg)`
+            rod.style.height = `${length}px`
+            bob.style.top = `${length * Math.cos(theta) - ($(bob).height() / 2)}px`
+            bob.style.left = `${-(length * Math.sin(theta)) + (baseX) - ($(bob).width() / 2)}px`
+        }
+
+        function animate(now) {
+            if ($("body").hasClass("run")) {
+                const delta = now - lastRenderTime;
+                if (1000 / fps < delta) {
+                    update()
+                    draw()
+
+                    timer.change(String(Math.floor(Date.now()/1000)))
+                }
+                requestAnimationFrame(animate)
+            }
+        }
+
+        $("#bob").draggable({
+            drag: function (event, ui) {
+                if ($("body").hasClass("run")) {
+                    $("body").removeClass("run")
+                }
+
+                let bX = (ui.offset.left - baseX + ($(bob).width() / 2))
+                let bY = (ui.offset.top - baseY + ($(bob).height() / 2))
+
+                let distance = Math.sqrt((bX * bX) + (bY * bY))
+                let rad = Math.atan2(bY, bX) - (3.1416 / 2)
+                rod.style.transform = `rotate(${rad * 180 / 3.14156}deg)`;
+                rod.style.height = `${distance}px`;
+
+                time.style.top = `${((distance / 2) - ($(bob).height() / 4)) * Math.cos(rad)}px`
+                time.style.left = `${-(((distance / 2) - ($(bob).width() / 4)) * Math.sin(rad) - (baseX))}px`
+
+                time_count.change(String(Math.floor(Math.max(...[0.06, Math.min(...[(distance / ($(window).height() - baseY) * 1.3 - 0.2), 1])]) * 30)))
+            },
+            stop: function (event, ui) {
+                let bX = (ui.offset.left - baseX + $(bob).width() / 2)
+                let bY = (ui.offset.top - baseY + $(bob).height() / 2)
+
+                length = Math.sqrt((bX * bX) + (bY * bY))
+                theta = Math.atan2(bY, bX) - (3.1416 / 2)
+                $("body").addClass("run")
+                animate()
+            }
+        })
+    </script>
+</body>
+
+</html>
