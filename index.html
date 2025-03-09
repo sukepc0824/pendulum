@@ -221,8 +221,8 @@
         })
 
         function handleMotion(event) {
-            let ax = event.acceleration.x
-            externalImpact = ax * 0.1;
+            let ax = event.accelerationIncludingGravity.x; // スマホの左右加速度
+            externalImpact = ax;
         }
         
         if (window.DeviceMotionEvent) {
