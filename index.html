@@ -107,10 +107,16 @@
             outline: 9px solid white;
             transform: scale(1);
         }
+
+        button {
+            background-color: #fff;
+        }
     </style>
 </head>
 
 <body>
+    <button onclick="hogehoge()">??</button>
+    <button onclick="hoge()">加速度追加</button>
     <div class="display">12:
         <div class="min"></div>
     </div>
@@ -123,10 +129,10 @@
         <div class="bob" id="bob"></div>
     </div>
     <script>
-        const g = 10; // 重力加速度 (m/s^2)
-        let length = 200; // 振り子の長さ (m)
-        const mass = 1; // 振り子の質量 (kg)
-        const dt = 0.016; // 時間刻み (s)
+        const g = 10; // 重力加速度
+        let length = 200; // 振り子の長さ
+        const mass = 1; // 振り子の質量
+        const dt = 0.016; // 時間刻み
         const airResistance = 0;
         let theta = Math.PI / 4;
 
@@ -151,6 +157,14 @@
             alpha -= airResistance * omega / mass
             omega += alpha * dt
             theta += omega * dt
+        }
+
+        function hogehoge(){
+            omega -= 1
+        }
+
+        function hoge(){
+            omega += 1
         }
 
         function draw() {
@@ -203,6 +217,15 @@
                 animate()
             }
         })
+
+        function handleMotion(event) {
+            let ax = event.accelerationIncludingGravity.x; // スマホの左右加速度
+            omega += ax * dt; // 加速度を角速度に反映
+        }
+        
+        if (window.DeviceMotionEvent) {
+            window.addEventListener("devicemotion", handleMotion);
+        }
     </script>
 </body>
 
