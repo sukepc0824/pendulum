@@ -10,7 +10,8 @@
         src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/destyle.css@1.0.15/destyle.css" />
     <script src="count-anim.js"></script>
-    <title>振り子シミュレーション</title>
+    <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
+    <title>Pendulum Timer</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fragment+Mono:ital@0;1&display=swap');
 
@@ -20,17 +21,18 @@
             align-items: center;
             flex-direction: column;
             height: 100vh;
+            color: #fff;
             background: black;
             font-family: "Fragment mono", sans-serif;
             font-feature-settings: "tnum";
+            overflow: hidden;
         }
 
         .time {
             position: absolute;
-            color: #fff;
             font-size: 30px;
-            left: 0;
-            z-index: 100;
+            left: -100%;
+            z-index: 1010;
             width: fit-content;
             padding: 6px;
             height: fit-content;
@@ -40,7 +42,7 @@
             transform: translateX(-50%) translateY(-50%);
             background-color: black;
             border-radius: 50%;
-            transition: opacity 0.1s, transform 0.1s;
+            transition: opacity 0.12s;
             opacity: 1;
         }
 
@@ -58,11 +60,15 @@
             height: 140px;
             color: white;
             opacity: 0;
-            transition: opacity 1s;
+            transition: opacity .4s;
             align-items: center;
-            font-size: 30px;
+            font-size: 32px;
             display: flex;
             user-select: none;
+            z-index: -100;
+            width: 100%;
+            align-items: center;
+            justify-content: center;
         }
 
         body.run .display {
@@ -73,6 +79,8 @@
             position: relative;
             width: 100%;
             height: 100%;
+            overflow:visible;
+            z-index: 1000;
         }
 
         .rod {
@@ -92,20 +100,20 @@
 
         .bob {
             position: absolute;
-            width: 46px;
-            height: 46px;
+            width: 42px;
+            height: 42px;
             background: black;
             border-radius: 50%;
             outline: 4px solid white;
             z-index: 10000;
-            transition: outline .2s;
-            left: calc(50% - 46px / 2);
-            top: calc(100px - 46px / 2);
+            transition: outline .14s, border .14s;
+            left: calc(50% - 42px / 2);
+            top: calc(100px - 42px / 2);
+            box-sizing: border-box;
         }
 
         body.run .bob {
             outline: 9px solid white;
-            transform: scale(1);
         }
 
         button {
@@ -115,10 +123,14 @@
 </head>
 
 <body>
-    <button onclick="hogehoge()">??</button>
-    <button onclick="hoge()">加速度追加</button>
-    <div class="display">12:
-        <div class="min"></div>
+    <div class="display">
+        <div class="min">
+
+        </div>
+        :
+        <div class="sec">
+            <p class="d">00</p>
+        </div>
     </div>
     <div class="pendulum-container">
         <div class="time">
@@ -133,12 +145,12 @@
         let length = 200; // 振り子の長さ
         const mass = 1; // 振り子の質量
         const dt = 0.016; // 時間刻み
-        const airResistance = 0;
+        let airResistance = 0;
         let theta = Math.PI / 4;
 
         const fps = 60;
+
         let lastRenderTime = 0;
-        let externalImpact = 0;
         let omega = 0;
         let alpha = 0;
 
@@ -150,24 +162,22 @@
         const time = document.querySelector(".time")
 
         let time_count = new CountAnim(document.querySelector(".time-inline"))
-        let timer = new CountAnim(document.querySelector(".display .min"))
+        let timer_min = new CountAnim(document.querySelector(".display .min"))
+        let timer_sec = new CountAnim(document.querySelector(".display .sec"))
+        let timer_end = 0
 
         function update() {
             alpha = - (g / (length / 100)) * Math.sin(theta)
             alpha -= airResistance * omega / mass
             omega += alpha * dt
             theta += omega * dt
-            alpha += externalImpact;
-            externalImpact *= 0.9;
         }
 
-        function hogehoge(){
-            omega -= 1
-        }
-
-        function hoge(){
-            omega += 1
-        }
+        let snd = new Howl({
+            src: ["cursor.mp3"],
+            loop: false,// 繰り返し再生をする/しない
+            volume: 0.7,
+        });
 
         function draw() {
             const angleDeg = theta * (180 / Math.PI)
@@ -181,16 +191,27 @@
             if ($("body").hasClass("run")) {
                 const delta = now - lastRenderTime;
                 if (1000 / fps < delta) {
+                    let remain_sec = Math.floor((timer_end - Date.now()) / 1000)
+                    if (remain_sec < 0) {
+                        airResistance += 0.0018;
+                    } else {
+                        airResistance = 0;
+                    }
+                    timer_min.down(String(Math.max(...[0, Math.floor(remain_sec / 60)])).padStart(2, '0'))
+                    if (remain_sec % 60) {
+                        $(".display p.d").hide()
+                    }
+                    timer_sec.down(String(Math.max(...[0, (remain_sec) % 60])).padStart(2, '0'))
+
                     update()
                     draw()
-
-                    timer.change(String(Math.floor(Date.now()/1000)))
                 }
                 requestAnimationFrame(animate)
             }
         }
 
         $("#bob").draggable({
+            containment:".pendulum-container",
             drag: function (event, ui) {
                 if ($("body").hasClass("run")) {
                     $("body").removeClass("run")
@@ -207,27 +228,24 @@
                 time.style.top = `${((distance / 2) - ($(bob).height() / 4)) * Math.cos(rad)}px`
                 time.style.left = `${-(((distance / 2) - ($(bob).width() / 4)) * Math.sin(rad) - (baseX))}px`
 
-                time_count.change(String(Math.floor(Math.max(...[0.06, Math.min(...[(distance / ($(window).height() - baseY) * 1.3 - 0.2), 1])]) * 30)))
+                if (String(Math.floor(Math.max(...[0.06, Math.min(...[(distance / ($(window).height() - baseY) * 1.3 - 0.2), 1])]) * 30)) !== $(".time-inline").text()) {
+                    snd.play()
+                }
+                $(".time-inline").text(String(Math.floor(Math.max(...[0.06, Math.min(...[(distance / ($(window).height() - baseY) * 1.3 - 0.2), 1])]) * 30)))
             },
             stop: function (event, ui) {
                 let bX = (ui.offset.left - baseX + $(bob).width() / 2)
                 let bY = (ui.offset.top - baseY + $(bob).height() / 2)
+                omega = 0;
+                alpha = 0;
 
                 length = Math.sqrt((bX * bX) + (bY * bY))
                 theta = Math.atan2(bY, bX) - (3.1416 / 2)
+                timer_end = (Math.floor(Math.max(...[0.06, Math.min(...[(length / ($(window).height() - baseY) * 1.3 - 0.2), 1])]) * 30) * 60 * 1000) + Date.now() + 1000
                 $("body").addClass("run")
                 animate()
             }
         })
-
-        function handleMotion(event) {
-            let ax = event.accelerationIncludingGravity.x; // スマホの左右加速度
-            externalImpact = ax;
-        }
-        
-        if (window.DeviceMotionEvent) {
-            window.addEventListener("devicemotion", handleMotion);
-        }
     </script>
 </body>
 

@@ -16,6 +16,9 @@ class CountAnim {
         this.element.querySelector(".count-anim-down-fadein").innerHTML = ""
     }
     up(number) {
+        if (Number(this.prev_array.join("")) === Number(number)) {
+            return false
+        }
         let number_array = number.split("")
         let number_array_reverse = number_array.reverse()
         let prev_array_reverse = this.prev_array.reverse()
@@ -38,6 +41,9 @@ class CountAnim {
         this.prev_array = number_array.reverse()
     }
     down(number) {
+        if (Number(this.prev_array.join("")) === Number(number)) {
+            return false
+        }
         let number_array = number.split("")
         let number_array_reverse = number_array.reverse()
         let prev_array_reverse = this.prev_array.reverse()
@@ -83,15 +89,15 @@ styleTag.textContent = `
             }
 
             100% {
-                filter: blur(0.08em);
-                transform: translateY(-4%) scale(0.8);
+                filter: blur(0.1em);
+                transform: translateY(-6%) scale(0.8);
                 opacity: 0;
             }
         }
 
         @keyframes anim-up-fadein {
             0% {
-                filter: blur(0.08em);
+                filter: blur(0.1em);
                 transform: translateY(20%);
                 opacity: 0;
             }
@@ -110,15 +116,15 @@ styleTag.textContent = `
             }
 
             100% {
-                filter: blur(0.08em);
-                transform: translateY(4%) scale(0.8);
+                filter: blur(0.1em);
+                transform: translateY(6%) scale(0.8);
                 opacity: 0;
             }
         }
 
         @keyframes anim-down-fadein {
             0% {
-                filter: blur(0.08em);
+                filter: blur(0.1em);
                 transform: translateY(-20%);
                 opacity: 0;
             }
@@ -154,7 +160,7 @@ styleTag.textContent = `
         }
 
         .count-anim-up-fadeout div{
-            animation: anim-up-fadeout cubic-bezier(0.175, 0.885, 0.32, 1.1) 0.45s forwards;
+            animation: anim-up-fadeout cubic-bezier(0.175, 0.885, 0.32, 1) 0.45s forwards;
         }
 
         p.count-anim-up-fadein,p.count-anim-down-fadein{
@@ -163,16 +169,16 @@ styleTag.textContent = `
 
         .count-anim-up-fadein div{
             opacity: 0;
-            animation: anim-up-fadein cubic-bezier(0.175, 0.885, 0.32, 1.25) 0.45s forwards;
+            animation: anim-up-fadein cubic-bezier(0.175, 0.885, 0.32, 1) 0.45s forwards;
         }
 
         .count-anim-down-fadeout div{
-            animation: anim-down-fadeout cubic-bezier(0.175, 0.885, 0.32, 1.1) 0.45s forwards;
+            animation: anim-down-fadeout cubic-bezier(0.175, 0.885, 0.32, 1) 0.45s forwards;
         }
 
         .count-anim-down-fadein div{
             opacity: 0;
-            animation: anim-down-fadein cubic-bezier(0.175, 0.885, 0.32, 1.25) 0.45s forwards;
+            animation: anim-down-fadein cubic-bezier(0.175, 0.885, 0.32, 1) 0.45s forwards;
         }
 
         .count-anim div.stop {
