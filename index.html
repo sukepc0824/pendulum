@@ -31,7 +31,7 @@
 
         .time {
             position: absolute;
-            font-size: 38px;
+            font-size: 42px;
             z-index: 1010;
             padding: 6px;
             height: fit-content;
@@ -56,21 +56,22 @@
 
         .time span {
             margin-left: 2px;
-            font-size: 23px;
+            font-size: 28px;
         }
 
         .display {
-            height: 122px;
+            height: 152px;
             color: white;
             opacity: 0;
             transition: opacity .4s;
             align-items: center;
-            font-size: 36px;
+            font-size: 42px;
             display: flex;
             user-select: none;
             z-index: -100;
             width: 100%;
-            align-items: center;
+            align-items: end;
+            padding: 40px;
             justify-content: center;
         }
 
@@ -103,15 +104,15 @@
 
         .bob {
             position: absolute;
-            width: 56px;
-            height: 56px;
+            width: 62px;
+            height: 62px;
             background: black;
             border-radius: 50%;
             outline: 3px solid white;
             z-index: 10000;
             transition: outline .14s, border .14s;
-            left: calc(50% - 56px / 2);
-            top: calc(100px - 56px / 2);
+            left: calc(50% - 62px / 2);
+            top: calc(100px - 62px / 2);
             box-sizing: border-box;
         }
 
