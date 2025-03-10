@@ -79,7 +79,7 @@
             position: relative;
             width: 100%;
             height: 100%;
-            overflow:visible;
+            overflow: visible;
             z-index: 1000;
         }
 
@@ -193,7 +193,7 @@
                 if (1000 / fps < delta) {
                     let remain_sec = Math.floor((timer_end - Date.now()) / 1000)
                     if (remain_sec < 0) {
-                        airResistance += 0.0018;
+                        airResistance += 0.0019;
                     } else {
                         airResistance = 0;
                     }
@@ -211,7 +211,7 @@
         }
 
         $("#bob").draggable({
-            containment:".pendulum-container",
+            containment: ".pendulum-container",
             drag: function (event, ui) {
                 if ($("body").hasClass("run")) {
                     $("body").removeClass("run")
@@ -246,6 +246,35 @@
                 animate()
             }
         })
+
+        const threshold = 5
+        const last = { x: null, y: null, z: null }
+
+        const deviceMotionHandler = (event) => {
+            const current = event.accelerationIncludingGravity
+
+            if (last.x === null && last.y === null && last.z === null) {
+                last.x = current.x
+                last.y = current.y
+                last.z = current.z
+                return
+            }
+
+            const deltaX = Math.abs(last.x - current.x)
+            const deltaY = Math.abs(last.y - current.y)
+            const deltaZ = Math.abs(last.z - current.z)
+
+            if (deltaX > threshold || deltaY > threshold || deltaZ > threshold) {
+                $("body").removeClass("run")
+            }
+
+            last.x = current.x
+            last.y = current.y
+            last.z = current.z
+        }
+
+        window.addEventListener('devicemotion', deviceMotionHandler, false)
+
     </script>
 </body>
 
