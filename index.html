@@ -44,6 +44,7 @@
             transition: opacity 0.12s;
             opacity: 1;
             left: -100%;
+            user-select: none;
         }
 
         body.run .time {
@@ -173,9 +174,10 @@
             theta += omega * dt
         }
 
+        let snd_flag = false;
         let snd = new Howl({
-            src: ["cursor.mp3"],
-            loop: false,
+            src: ["alarm.mp3"],
+            loop: true,
             volume: 0.5,
         });
 
@@ -193,6 +195,10 @@
                 if (1000 / fps < delta) {
                     let remain_sec = Math.floor((timer_end - Date.now()) / 1000)
                     if (remain_sec < 0) {
+                        if(snd_flag === false){
+                            snd.play()
+                            snd_flag = true
+                        }
                         airResistance += 0.0025;
                         if (remain_sec < -100){
                             airResistance += 0.0024;
@@ -216,9 +222,11 @@
         $("#bob").draggable({
             containment: ".pendulum-container",
             drag: function (event, ui) {
+                snd.stop()
                 if ($("body").hasClass("run")) {
                     $("body").removeClass("run")
                 }
+                $(".display").css("opacity",0)
 
                 let bX = (ui.offset.left - baseX + ($(bob).width() / 2))
                 let bY = (ui.offset.top - baseY + ($(bob).height() / 2))
@@ -232,7 +240,7 @@
                 time.style.left = `${-(((distance / 2) - ($(bob).width() / 4)) * Math.sin(rad) - (baseX))}px`
 
                 if (String(Math.floor(Math.max(...[0.06, Math.min(...[(distance / ($(window).height() - baseY) * 1.3 - 0.2), 1])]) * 30)) !== $(".time-inline").text()) {
-                    snd.play()
+                    //
                 }
 
                 $(".time-inline").text(String(Math.floor(Math.max(...[0.06, Math.min(...[(distance / ($(window).height() - baseY) * 1.3 - 0.2), 1])]) * 30)))
@@ -249,10 +257,11 @@
                 $("body").addClass("run")
                 $(".display").css("opacity",1)
                 animate()
+                snd_flag = false
             }
         })
 
-        const threshold = 8
+        const threshold = 9.8
         const last = { x: null, y: null, z: null }
 
         const deviceMotionHandler = (event) => {
@@ -279,6 +288,7 @@
         }
 
         function stop(){
+            snd.stop()
             $(".display").css("opacity",0)
             setTimeout(() => {
                 timer_end = 0
