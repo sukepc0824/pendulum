@@ -12,6 +12,7 @@
     <script src="count-anim.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
     <title>Pendulum Timer</title>
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fragment+Mono:ital@0;1&display=swap');
 
@@ -30,14 +31,13 @@
 
         .time {
             position: absolute;
-            font-size: 30px;
+            font-size: 36px;
             z-index: 1010;
-            width: fit-content;
             padding: 6px;
             height: fit-content;
             display: flex;
             align-items: end;
-            justify-content: center;
+            justify-content: end;
             transform: translateX(-50%) translateY(-50%);
             background-color: black;
             border-radius: 50%;
@@ -45,6 +45,8 @@
             opacity: 1;
             left: -100%;
             user-select: none;
+            text-align: end;
+            width: 60px;
         }
 
         body.run .time {
@@ -63,7 +65,7 @@
             opacity: 0;
             transition: opacity .4s;
             align-items: center;
-            font-size: 32px;
+            font-size: 36px;
             display: flex;
             user-select: none;
             z-index: -100;
@@ -101,20 +103,20 @@
 
         .bob {
             position: absolute;
-            width: 42px;
-            height: 42px;
+            width: 53px;
+            height: 53px;
             background: black;
             border-radius: 50%;
-            outline: 4px solid white;
+            outline: 3px solid white;
             z-index: 10000;
             transition: outline .14s, border .14s;
-            left: calc(50% - 42px / 2);
-            top: calc(100px - 42px / 2);
+            left: calc(50% - 53px / 2);
+            top: calc(100px - 53px / 2);
             box-sizing: border-box;
         }
 
         body.run .bob {
-            outline: 9px solid white;
+            outline: 8px solid white;
         }
 
         button {
@@ -194,18 +196,18 @@
                 const delta = now - lastRenderTime;
                 if (1000 / fps < delta) {
                     let remain_sec = Math.floor((timer_end - Date.now()) / 1000)
-                    if (remain_sec < 0) {
-                        if(snd_flag === false){
+                    if (-1000 < remain_sec && remain_sec < 0) {
+                        if (snd_flag === false) {
                             snd.play()
                             snd_flag = true
                         }
                         airResistance += 0.0025;
-                        if (remain_sec < -100){
-                            airResistance += 0.0024;
-                        }
+                    } else if (remain_sec < -1000) {
+                        airResistance += 0.005;
                     } else {
                         airResistance = 0;
                     }
+                    console.log(remain_sec)
                     timer_min.down(String(Math.max(...[0, Math.floor(remain_sec / 60)])).padStart(2, '0'))
                     if (remain_sec % 60) {
                         $(".display p.d").hide()
@@ -226,7 +228,7 @@
                 if ($("body").hasClass("run")) {
                     $("body").removeClass("run")
                 }
-                $(".display").css("opacity",0)
+                $(".display").css("opacity", 0)
 
                 let bX = (ui.offset.left - baseX + ($(bob).width() / 2))
                 let bY = (ui.offset.top - baseY + ($(bob).height() / 2))
@@ -255,7 +257,7 @@
                 theta = Math.atan2(bY, bX) - (3.1416 / 2)
                 timer_end = (Math.floor(Math.max(...[0.06, Math.min(...[(length / ($(window).height() - baseY) * 1.3 - 0.2), 1])]) * 30) * 60 * 1000) + Date.now() + 1000
                 $("body").addClass("run")
-                $(".display").css("opacity",1)
+                $(".display").css("opacity", 1)
                 animate()
                 snd_flag = false
             }
@@ -287,12 +289,14 @@
             last.z = current.z
         }
 
-        function stop(){
+        function stop() {
             snd.stop()
-            $(".display").css("opacity",0)
+            $(".display").css("opacity", 0)
             setTimeout(() => {
                 timer_end = 0
+                snd.stop()
             }, 400);
+
             time.style.left = "-100%"
         }
 
