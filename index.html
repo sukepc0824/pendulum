@@ -31,7 +31,6 @@
         .time {
             position: absolute;
             font-size: 30px;
-            left: -100%;
             z-index: 1010;
             width: fit-content;
             padding: 6px;
@@ -44,6 +43,7 @@
             border-radius: 50%;
             transition: opacity 0.12s;
             opacity: 1;
+            left: -100%;
         }
 
         body.run .time {
@@ -175,8 +175,8 @@
 
         let snd = new Howl({
             src: ["cursor.mp3"],
-            loop: false,// 繰り返し再生をする/しない
-            volume: 0.7,
+            loop: false,
+            volume: 0.5,
         });
 
         function draw() {
@@ -193,7 +193,10 @@
                 if (1000 / fps < delta) {
                     let remain_sec = Math.floor((timer_end - Date.now()) / 1000)
                     if (remain_sec < 0) {
-                        airResistance += 0.0019;
+                        airResistance += 0.0025;
+                        if (remain_sec < -100){
+                            airResistance += 0.0024;
+                        }
                     } else {
                         airResistance = 0;
                     }
@@ -231,6 +234,7 @@
                 if (String(Math.floor(Math.max(...[0.06, Math.min(...[(distance / ($(window).height() - baseY) * 1.3 - 0.2), 1])]) * 30)) !== $(".time-inline").text()) {
                     snd.play()
                 }
+
                 $(".time-inline").text(String(Math.floor(Math.max(...[0.06, Math.min(...[(distance / ($(window).height() - baseY) * 1.3 - 0.2), 1])]) * 30)))
             },
             stop: function (event, ui) {
@@ -243,11 +247,12 @@
                 theta = Math.atan2(bY, bX) - (3.1416 / 2)
                 timer_end = (Math.floor(Math.max(...[0.06, Math.min(...[(length / ($(window).height() - baseY) * 1.3 - 0.2), 1])]) * 30) * 60 * 1000) + Date.now() + 1000
                 $("body").addClass("run")
+                $(".display").css("opacity",1)
                 animate()
             }
         })
 
-        const threshold = 5
+        const threshold = 8
         const last = { x: null, y: null, z: null }
 
         const deviceMotionHandler = (event) => {
@@ -265,12 +270,20 @@
             const deltaZ = Math.abs(last.z - current.z)
 
             if (deltaX > threshold || deltaY > threshold || deltaZ > threshold) {
-                $("body").removeClass("run")
+                stop()
             }
 
             last.x = current.x
             last.y = current.y
             last.z = current.z
+        }
+
+        function stop(){
+            $(".display").css("opacity",0)
+            setTimeout(() => {
+                timer_end = 0
+            }, 400);
+            time.style.left = "-100%"
         }
 
         window.addEventListener('devicemotion', deviceMotionHandler, false)
