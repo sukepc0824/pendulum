@@ -158,8 +158,15 @@
         let omega = 0;
         let alpha = 0;
 
-        const baseY = $(".pendulum-container").offset().top
-        const baseX = $(".pendulum-container").offset().left + $(".pendulum-container").width() / 2
+        let baseY
+        let baseX
+
+        function set_position() {
+            baseY = $(".pendulum-container").offset().top
+            baseX = $(".pendulum-container").offset().left + $(".pendulum-container").width() / 2
+        }
+        set_position()
+        window.addEventListener('resize', set_position);
 
         const rod = document.getElementById("rod")
         const bob = document.getElementById("bob")
@@ -204,11 +211,10 @@
                         }
                         airResistance += 0.0025;
                     } else if (remain_sec < -1000) {
-                        airResistance += 0.005;
+                        airResistance += 0.0058;
                     } else {
                         airResistance = 0;
                     }
-                    console.log(remain_sec)
                     timer_min.down(String(Math.max(...[0, Math.floor(remain_sec / 60)])).padStart(2, '0'))
                     if (remain_sec % 60) {
                         $(".display p.d").hide()
