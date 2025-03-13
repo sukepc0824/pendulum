@@ -1,0 +1,14 @@
+{
+    "name": "Pendulum Timer",
+    "short_name": "Pendulum",
+    "background_color": "#000000",
+    "icons": [
+        {
+            "src": "/icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "/index.html",
+    "display": "fullscreen"
+}
